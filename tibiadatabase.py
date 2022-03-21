@@ -1,5 +1,4 @@
-from peewee import *
-
+from peewee import CharField, IntegerField, SqliteDatabase, Model, DoesNotExist
 
 db = SqliteDatabase('monsters.db')
 

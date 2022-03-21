@@ -43,7 +43,7 @@ def create_monster(monster: Monster):
     )
     query.execute()
 
-    return JSONResponse({'Message': f'Monster Created: {monster.name}'})
+    return JSONResponse({'Message': 'Monster Created'}, 201)
 
 
 @app.get('/monster/{name}')
@@ -64,6 +64,13 @@ def put_monster(name: str, modifymonster: MonsterModify):
 
     if not monster:
         return JSONResponse({'Message': 'Monster Not Found'}, 404)
+
+    if modifymonster.name:
+        query = Monsters.update({Monsters.name: modifymonster.name}).where(
+            Monsters.name == name
+        )
+        query.execute()
+        return JSONResponse({'Message': 'Name modified'})
 
     if modifymonster.hp:
         query = Monsters.update({Monsters.hp: modifymonster.hp}).where(
