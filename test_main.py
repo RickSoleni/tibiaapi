@@ -1,13 +1,14 @@
+import pytest
 from starlette.testclient import TestClient
-from tibiadatabase import Monsters
 from main import app
 
 teste = TestClient(app)
 
 
-def test_post_with_a_valid_payload():
 
-    payload = {
+@pytest.fixture()
+def payload():
+    return  {
         'name': 'Dragon',
         'hp': 1200,
         'exp': 720,
@@ -17,10 +18,14 @@ def test_post_with_a_valid_payload():
         'abilities': 1,
     }
 
+def test_post_with_a_valid_payload(payload):
+
     response = teste.post('/monster', json=payload)
     assert response.json() == {'Message': 'Monster Created'}
     assert response.status_code == 201
-    assert Monsters.get_as_dict(Monsters.name == 'Dragon')
+    response = teste.get('/monster/Dragon')
+    res_json = response.json()
+    assert res_json['Monster'] == payload
 
 
 def test_post_with_a_invalid_payload():
@@ -32,7 +37,9 @@ def test_post_with_a_invalid_payload():
     assert response.status_code == 422
 
 
-def test_get_name_with_a_valid_name():
+def test_get_name_with_a_valid_name(payload):
+
+    response = teste.post('/monster', json=payload)
 
     response = teste.get('/monster/Dragon')
 
@@ -50,55 +57,52 @@ def test_get_name_with_a_invalid_name():
 def test_put_with_a_valid_name():
 
     name = 'Dragon'
-    monster = Monsters.get_as_dict(Monsters.name == name)
+    previous_monster = teste.get(f'/monster/{name}')
 
-    assert monster
+    assert previous_monster.status_code == 200
 
     response = teste.put(f'/monster/{name}', json={'name': 'Dragon Lord'})
+    new_monster = teste.get('/monster/Dragon Lord')
 
-    assert monster != Monsters.get_as_dict(Monsters.name == name)
-
-    assert response.json() == {'Message': 'Name modified'}
-
+    assert previous_monster.json() != new_monster.json()
+    assert response.json() == {'Message': 'Monster Modified'}
     assert response.status_code == 200
 
 
-def test_put_with_a_invalid_id():
+def test_put_with_a_invalid_name():
 
     name = 'Abluble'
+    response = teste.get(f'/monster/{name}')
 
-    assert not Monsters.get_as_dict(Monsters.name == name)
-
+    assert response.status_code == 404
     response = teste.put(f'/monster/{name}', json={'name': 'ablubleeee'})
 
     assert response.json() == {'Message': 'Monster Not Found'}
-
     assert response.status_code == 404
 
 
 def test_delete_with_a_valid_name():
 
     name = 'Dragon Lord'
-
-    assert Monsters.get_as_dict(Monsters.name == name)
-
-    response = teste.delete(f'/monster/{name}')
-
-    assert not Monsters.get_as_dict(Monsters.name == name)
-
+    response = teste.get(f'/monster/{name}')
     assert response.status_code == 200
 
+    response = teste.delete(f'/monster/{name}')
+    assert response.status_code == 200
     assert response.json() == {'Message': 'Monster Deleted'}
+    
+    deleted = teste.get(f'/monster/Dragon Lord')    
+    assert deleted.status_code == 404
+
 
 
 def test_delete_with_a_invalid_name():
 
     name = 'Abluble'
-
-    assert not Monsters.get_as_dict(Monsters.name == name)
-
-    response = teste.delete(f'/monster/{name}')
+    response = teste.get(f'/monster/{name}')
 
     assert response.status_code == 404
+    response = teste.delete(f'/monster/{name}')
 
-    assert response.json() == {'Message': 'Monster Not found'}
+    assert response.json() == {'Message': 'Monster Not Found'}
+    assert response.status_code == 404

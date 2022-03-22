@@ -12,10 +12,10 @@ class Monster(BaseModel):
 
 
 class MonsterModify(BaseModel):
-    name: str
-    hp: int
-    exp: int
-    charms: int
-    speed: int
-    armor: int
-    abilities: int
+    name: str  | None
+    hp: int | None
+    exp: int | None
+    charms: int | None
+    speed: int | None
+    armor: int | None
+    abilities: int | None

@@ -10,7 +10,10 @@ app = FastAPI()
 @app.post('/monster')
 def create_monster(monster: Monster):
 
-    create(monster.dict())
+    created = create(monster.dict())
+    if not created:
+        return JSONResponse({'Message': 'Invalid Input: you can\'t send a duplicated monster name'}, 400)
+
     return JSONResponse({'Message': 'Monster Created'}, 201)
 
 
@@ -40,5 +43,5 @@ def delete_monster(name: str):
     is_deleted = bool(delete(name))
 
     if not is_deleted:
-        return JSONResponse({'Message': 'Monster Not found'}, 404)
+        return JSONResponse({'Message': 'Monster Not Found'}, 404)
     return JSONResponse({'Message': 'Monster Deleted'}, 200)
